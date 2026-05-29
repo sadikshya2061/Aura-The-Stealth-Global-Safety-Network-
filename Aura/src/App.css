@@ -1,0 +1,212 @@
+/* Calculator only mode - full screen, no header/footer */
+.app-calculator-only {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  margin: 0;
+  padding: 20px;
+}
+
+/* Hide any extra elements when in calculator mode */
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Calculator Ghost Mode Styles */
+.calculator-ghost {
+  max-width: 350px;
+  width: 100%;
+  margin: 0 auto;
+  background: #1e1e1e;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.calculator-display {
+  background: #000;
+  color: white;
+  padding: 15px;
+  border-radius: 10px;
+  font-size: 2rem;
+  text-align: right;
+  margin-bottom: 15px;
+  min-height: 60px;
+  overflow-x: auto;
+}
+
+.calculator-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.calc-btn {
+  height: 65px;
+  font-size: 1.3rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+  font-weight: bold;
+}
+
+.calc-btn.number {
+  background: #2d2d2d;
+  color: white;
+}
+
+.calc-btn.number:hover {
+  background: #444;
+}
+
+.calc-btn.number.zero {
+  grid-column: span 2;
+}
+
+.calc-btn.operator {
+  background: #ff9500;
+  color: white;
+}
+
+.calc-btn.operator:hover {
+  background: #e08900;
+}
+
+.calc-btn.equals {
+  background: #34c759;
+  color: white;
+}
+
+.calc-btn.equals:hover {
+  background: #28a745;
+}
+
+.calc-btn.clear {
+  background: #ff3b30;
+  color: white;
+}
+
+.calc-btn.clear:hover {
+  background: #d63031;
+}
+
+.calc-btn:active {
+  transform: scale(0.95);
+}
+
+.calculator-hint {
+  text-align: center;
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(255, 149, 0, 0.1);
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+
+.calculator-hint p {
+  color: #ff9500;
+  margin: 0;
+}
+
+.calculator-hint strong {
+  font-weight: bold;
+  background: #ff9500;
+  color: #1e1e1e;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Safety App Styles (for after unlock) */
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.app-header h1 {
+  color: #2c3e50;
+  font-size: 2rem;
+}
+
+.main-content {
+  display: grid;
+  gap: 30px;
+}
+
+.sos-section,
+.location-section,
+.contacts-section,
+.stories-section {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.sos-section h2,
+.location-section h2,
+.contacts-section h2,
+.stories-section h2 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.sos-button {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  border: 8px solid #fff;
+  box-shadow: 0 10px 30px rgba(231, 76, 60, 0.5);
+  color: white;
+  font-size: 2.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.sos-button .icon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.sos-button .text {
+  font-size: 1.5rem;
+}
+
+.app-footer {
+  margin-top: 40px;
+  padding: 20px;
+  text-align: center;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  color: #666;
+}
+
+.app-footer .disclaimer {
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 8px;
+}
