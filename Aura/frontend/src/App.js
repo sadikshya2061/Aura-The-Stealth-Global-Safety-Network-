@@ -4,15 +4,12 @@ import './App.css';
 const BACKEND_URL = 'http://localhost:5000/api';
 
 export default function App() {
-  // State management
   const [isGhostMode, setIsGhostMode] = useState(true);
   const [calcInput, setCalcInput] = useState('');
   const [category, setCategory] = useState('Mental Health');
   const [storyText, setStoryText] = useState('');
   const [globalStories, setGlobalStories] = useState([]);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  
-  // Reply States
   const [replyText, setReplyText] = useState('');
   const [replyingTo, setReplyingTo] = useState(null);
   const [showReplies, setShowReplies] = useState({});
@@ -24,7 +21,6 @@ export default function App() {
       if (!offlineData) return;
       const queue = JSON.parse(offlineData);
       if (queue.length === 0) return;
-
       for (const story of queue) {
         await fetch(`${BACKEND_URL}/story/save`, {
           method: 'POST',
@@ -32,7 +28,6 @@ export default function App() {
           body: JSON.stringify(story),
         });
       }
-
       localStorage.removeItem('offlineStories');
       fetchStories();
       alert('Your offline posts have been successfully synced!');
@@ -56,16 +51,13 @@ export default function App() {
 
   useEffect(() => {
     fetchStories();
-
     const goOnline = () => {
       setIsOffline(false);
       syncOfflineStories();
     };
     const goOffline = () => setIsOffline(true);
-
     window.addEventListener('online', goOnline);
     window.addEventListener('offline', goOffline);
-
     return () => {
       window.removeEventListener('online', goOnline);
       window.removeEventListener('offline', goOffline);
@@ -75,7 +67,6 @@ export default function App() {
   const handlePostStory = async (e) => {
     e.preventDefault();
     if (!storyText.trim()) return;
-
     const newStory = {
       id: Date.now(),
       story: storyText,
@@ -84,7 +75,6 @@ export default function App() {
       location: 'Anonymous User',
       replies: 0
     };
-
     if (isOffline) {
       const existingQueue = localStorage.getItem('offlineStories');
       const queue = existingQueue ? JSON.parse(existingQueue) : [];
@@ -119,7 +109,6 @@ export default function App() {
 
   const handleReply = async (storyId) => {
     if (!replyText.trim()) return;
-
     const newReply = {
       id: Date.now(),
       storyId: storyId,
@@ -127,24 +116,17 @@ export default function App() {
       timestamp: new Date().toISOString(),
       category: category
     };
-
-    // Save reply locally
     setReplies(prev => ({
       ...prev,
       [storyId]: [...(prev[storyId] || []), newReply]
     }));
-
-    // Update reply count
     setGlobalStories(prev => prev.map(story => 
       story.id === storyId 
         ? { ...story, replies: (story.replies || 0) + 1 }
         : story
     ));
-
     setReplyText('');
     setReplyingTo(null);
-
-    // Send to backend
     try {
       await fetch(`${BACKEND_URL}/story/reply`, {
         method: 'POST',
@@ -197,7 +179,6 @@ export default function App() {
             { name: 'Emergency Support', phone: '911' }
           ]
         };
-
         try {
           await fetch(`${BACKEND_URL}/location/alert`, {
             method: 'POST',
@@ -227,7 +208,6 @@ export default function App() {
     return { backgroundColor: '#f59e0b', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', color: '#fff' };
   };
 
-  // GHOST MODE CALCULATOR
   if (isGhostMode) {
     return (
       <div style={styles.calcContainer}>
@@ -248,33 +228,24 @@ export default function App() {
             </div>
           ))}
         </div>
-        <div style={styles.calcHint}>
-          <p>🔒 Enter <strong style={{ background: '#ff9500', color: '#000', padding: '4px 8px', borderRadius: '6px' }}>9999=</strong> to unlock</p>
-        </div>
       </div>
     );
   }
 
-  // MAIN APP WITH REPLY FEATURE
   return (
     <div style={styles.appContainer}>
       <div style={styles.ghostBar} onClick={activateGhostMode}>
         <span>🔒 System Framework Secure • Click to Minimize</span>
       </div>
-
       {isOffline && (
         <div style={styles.offlineBanner}>
           ⚠️ Offline Mode - Messages will sync when online
         </div>
       )}
-
       <main style={styles.mainLayout}>
         <h1 style={styles.mainHeading}>The Anonymous Global Sanctuary</h1>
-
-        {/* Post Story Section */}
         <section style={styles.panel}>
           <h3 style={{ marginTop: 0, color: '#f3f4f6' }}>Release Your Story Completely Anonymously</h3>
-          
           <div style={styles.categoryRow}>
             {['Mental Health', 'Abuse Support', 'Bullying'].map((cat) => (
               <button 
@@ -286,7 +257,6 @@ export default function App() {
               </button>
             ))}
           </div>
-
           <form onSubmit={handlePostStory}>
             <textarea 
               style={styles.textArea} 
@@ -300,11 +270,8 @@ export default function App() {
             </button>
           </form>
         </section>
-
-        {/* Stories Feed with Reply Feature */}
         <section style={{ marginTop: '30px' }}>
           <h2 style={{ color: '#9ca3af', fontSize: '1.25rem' }}>Shared Journeys Around the World</h2>
-          
           {globalStories.length === 0 ? (
             <p style={{ color: '#6b7280' }}>No stories yet. Be the first to share!</p>
           ) : (
@@ -314,47 +281,21 @@ export default function App() {
                   <span style={getCategoryStyle(item.category)}>{item.category}</span>
                   <small style={{ color: '#64748b', fontSize: '10px' }}>{formatMessageTime(item.timestamp)}</small>
                 </div>
-                
                 <p style={styles.storyText}>{item.story}</p>
-                
-                {/* Reply Button */}
                 <div style={styles.storyActions}>
-                  <button 
-                    style={styles.replyButton}
-                    onClick={() => setReplyingTo(replyingTo === item.id ? null : item.id)}
-                  >
+                  <button style={styles.replyButton} onClick={() => setReplyingTo(replyingTo === item.id ? null : item.id)}>
                     💬 Reply ({replies[item.id]?.length || item.replies || 0})
                   </button>
-                  <button 
-                    style={styles.viewRepliesButton}
-                    onClick={() => toggleReplies(item.id)}
-                  >
+                  <button style={styles.viewRepliesButton} onClick={() => toggleReplies(item.id)}>
                     {showReplies[item.id] ? '▲ Hide replies' : '▼ View replies'}
                   </button>
                 </div>
-
-                {/* Reply Input */}
                 {replyingTo === item.id && (
                   <div style={styles.replyInputContainer}>
-                    <input
-                      type="text"
-                      style={styles.replyInput}
-                      placeholder="Write a reply..."
-                      value={replyText}
-                      onChange={(e) => setReplyText(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleReply(item.id)}
-                      autoFocus
-                    />
-                    <button 
-                      style={styles.sendReplyButton}
-                      onClick={() => handleReply(item.id)}
-                    >
-                      Send
-                    </button>
+                    <input type="text" style={styles.replyInput} placeholder="Write a reply..." value={replyText} onChange={(e) => setReplyText(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleReply(item.id)} autoFocus />
+                    <button style={styles.sendReplyButton} onClick={() => handleReply(item.id)}>Send</button>
                   </div>
                 )}
-
-                {/* Show Replies */}
                 {showReplies[item.id] && replies[item.id] && replies[item.id].length > 0 && (
                   <div style={styles.repliesSection}>
                     {replies[item.id].map((reply) => (
@@ -373,7 +314,6 @@ export default function App() {
           )}
         </section>
       </main>
-
       <footer style={styles.sosFooter} onClick={triggerSOS}>
         🚨 TRIGGER SATELLITE EMERGENCY SOS
       </footer>
@@ -393,7 +333,6 @@ const styles = {
   catBtnActive: { backgroundColor: '#3b82f6', color: '#fff', borderColor: '#3b82f6', fontWeight: 'bold' },
   textArea: { width: '100%', boxSizing: 'border-box', backgroundColor: '#334155', border: 'none', borderRadius: '8px', padding: '12px', color: '#fff', resize: 'vertical', fontFamily: 'inherit' },
   submitBtn: { width: '100%', marginTop: '10px', padding: '12px', border: 'none', borderRadius: '8px', backgroundColor: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer' },
-  
   storyCard: { backgroundColor: '#1e293b', padding: '16px', borderRadius: '12px', margin: '12px 0', borderLeft: '4px solid #3b82f6' },
   storyHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' },
   storyText: { margin: '8px 0', color: '#e5e7eb', fontSize: '14px', lineHeight: '1.5' },
@@ -409,13 +348,10 @@ const styles = {
   replyAnonymous: { fontSize: '10px', color: '#8b5cf6' },
   replyTime: { fontSize: '9px', color: '#64748b' },
   replyText: { fontSize: '12px', color: '#cbd5e1', margin: 0, lineHeight: '1.4' },
-  
   sosFooter: { position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#dc2626', color: '#fff', textAlign: 'center', padding: '18px', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer', letterSpacing: '1px', boxShadow: '0 -4px 10px rgba(0,0,0,0.3)' },
-  
   calcContainer: { backgroundColor: '#000', height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', fontFamily: 'monospace' },
-  calcScreen: { color: '#fff', fontSize: '2.5rem', textAlign: 'right', padding: '20px', marginBottom: '10px', width: '300px', background: '#1a1a1a', borderRadius: '10px' },
-  calcGrid: { display: 'flex', flexDirection: 'column', gap: '8px', padding: '10px', backgroundColor: '#111', borderRadius: '20px', width: '300px' },
-  calcRow: { display: 'flex', justifyContent: 'space-between', gap: '8px' },
-  calcBtn: { flex: 1, height: '55px', borderRadius: '30px', border: 'none', backgroundColor: '#333', color: '#fff', fontSize: '1.3rem', cursor: 'pointer' },
-  calcHint: { textAlign: 'center', marginTop: '20px', paddingBottom: '30px', color: '#ff9500' }
+  calcScreen: { color: '#fff', fontSize: '2rem', textAlign: 'right', padding: '15px', marginBottom: '10px', width: '280px', background: '#1a1a1a', borderRadius: '10px' },
+  calcGrid: { display: 'flex', flexDirection: 'column', gap: '6px', padding: '10px', backgroundColor: '#111', borderRadius: '15px', width: '280px' },
+  calcRow: { display: 'flex', justifyContent: 'space-between', gap: '6px' },
+  calcBtn: { flex: 1, height: '50px', borderRadius: '25px', border: 'none', backgroundColor: '#333', color: '#fff', fontSize: '1.2rem', cursor: 'pointer' }
 };

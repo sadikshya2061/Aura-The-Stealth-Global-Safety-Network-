@@ -208,7 +208,7 @@ function CalculatorGhost({ onUnlock }) {
       
       {/* NEW: Hint for users */}
       <div className="calculator-hint">
-        <p>🔒 Enter <strong>9999=</strong> to access emergency features</p>
+        <p></p>
       </div>
     </div>
   );
