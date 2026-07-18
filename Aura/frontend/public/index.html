@@ -3,10 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#e74c3c" />
-  <meta name="description" content="Personal Safety App - Emergency SOS, Location Tracking, Calculator Ghost Mode" />
-  <title>Personal Safety App</title>
+  <meta name="theme-color" content="#FF8C00" />
+  <meta name="description" content="Calculator" />
+  <title>Calculator</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <script>
+    // Detect iPhone
+    const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    // Set favicon based on device
+    const favicon = isIPhone ? 'favicon.png' : 'favicon-calc.png';
+    document.write(`<link rel="icon" href="${favicon}">`);
+  </script>
+  
   <style>
     * {
       margin: 0;
@@ -15,7 +24,7 @@
     }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #f0f0f0;
       min-height: 100vh;
     }
   </style>

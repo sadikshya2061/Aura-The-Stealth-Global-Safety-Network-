@@ -5,7 +5,11 @@ function CalculatorGhost({ onUnlock }) {
   const [firstOperand, setFirstOperand] = useState(null);
   const [operator, setOperator] = useState(null);
   const [waitingForSecondOperand, setWaitingForSecondOperand] = useState(false);
-  const [typedCode, setTypedCode] = useState(''); // NEW: track typed digits
+  const [typedCode, setTypedCode] = useState('');
+  const [expression, setExpression] = useState('');
+  const [unlockCode, setUnlockCode] = useState('9999');
+  const [isSettingCode, setIsSettingCode] = useState(false);
+  const [newCode, setNewCode] = useState('');
 
   const inputDigit = (digit) => {
     if (waitingForSecondOperand) {
@@ -14,12 +18,8 @@ function CalculatorGhost({ onUnlock }) {
     } else {
       setDisplay(display === '0' ? String(digit) : display + digit);
     }
-    
-    // NEW: Track typed digits for secret code
     const newTypedCode = typedCode + digit;
     setTypedCode(newTypedCode);
-    
-    // Keep only last 4 digits
     if (newTypedCode.length > 4) {
       setTypedCode(newTypedCode.slice(-4));
     }
@@ -39,27 +39,22 @@ function CalculatorGhost({ onUnlock }) {
     setFirstOperand(null);
     setOperator(null);
     setWaitingForSecondOperand(false);
-    setTypedCode(''); // NEW: Reset code tracking
+    setTypedCode('');
+    setExpression('');
   };
 
   const calculate = (first, second, op) => {
     switch (op) {
-      case '+':
-        return first + second;
-      case '-':
-        return first - second;
-      case '*':
-        return first * second;
-      case '/':
-        return second !== 0 ? first / second : 'Error';
-      default:
-        return second;
+      case '+': return first + second;
+      case '-': return first - second;
+      case '*': return first * second;
+      case '/': return second !== 0 ? first / second : 'Error';
+      default: return second;
     }
   };
 
   const performOperation = (nextOperator) => {
     const inputValue = parseFloat(display);
-
     if (firstOperand === null) {
       setFirstOperand(inputValue);
     } else if (operator) {
@@ -67,148 +62,109 @@ function CalculatorGhost({ onUnlock }) {
       setDisplay(String(result));
       setFirstOperand(result);
     }
-
     setWaitingForSecondOperand(true);
     setOperator(nextOperator);
+    const sym = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+    setExpression(display + ' ' + (sym[nextOperator] || nextOperator));
   };
 
   const handleEquals = () => {
+    if (typedCode === unlockCode) {
+      onUnlock();
+      return;
+    }
     if (!operator || firstOperand === null) return;
-
     const inputValue = parseFloat(display);
     const result = calculate(firstOperand, inputValue, operator);
-
+    const sym = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+    setExpression(firstOperand + ' ' + (sym[operator] || operator) + ' ' + inputValue + ' =');
     setDisplay(String(result));
     setFirstOperand(null);
     setOperator(null);
     setWaitingForSecondOperand(false);
-    
-    // NEW: Check for secret code "9999="
-    if (typedCode === '9999') {
-      onUnlock(); // This will show the safety app
+    setTypedCode('');
+  };
+
+  const changeUnlockCode = () => {
+    if (newCode.length === 4 && /^\d{4}$/.test(newCode)) {
+      setUnlockCode(newCode);
+      setNewCode('');
+      setIsSettingCode(false);
+      setDisplay('✓ Code Updated');
+      setTimeout(() => setDisplay('0'), 1500);
+    } else {
+      setDisplay('✗ 4 digits');
+      setTimeout(() => setDisplay('0'), 1500);
+    }
+  };
+
+  const toggleCodeChange = () => {
+    if (isSettingCode) {
+      setIsSettingCode(false);
+      setNewCode('');
+      setDisplay('0');
+    } else {
+      setIsSettingCode(true);
+      setNewCode('');
+      setDisplay('Enter 4-digit code');
     }
   };
 
   return (
     <div className="calculator-ghost">
       <div className="calculator-display">
-        {display}
+        <div className="display-expression">{expression}</div>
+        <div className="display-value">{display}</div>
       </div>
 
       <div className="calculator-buttons">
-        {/* Row 1 */}
-        <button className="calc-btn clear" onClick={clearDisplay}>
-          AC
-        </button>
-        <button
-          className="calc-btn operator"
-          onClick={() => performOperation('/')}
-        >
-          ÷
-        </button>
-        <button
-          className="calc-btn operator"
-          onClick={() => performOperation('*')}
-        >
-          ×
-        </button>
-        <button
-          className="calc-btn operator"
-          onClick={() => performOperation('-')}
-        >
-          −
-        </button>
+        <button className="calc-btn number" onClick={() => inputDigit('7')}>7</button>
+        <button className="calc-btn number" onClick={() => inputDigit('8')}>8</button>
+        <button className="calc-btn number" onClick={() => inputDigit('9')}>9</button>
+        <button className="calc-btn operator" onClick={() => performOperation('/')}>÷</button>
 
-        {/* Row 2 */}
-        <button
-          className="calc-btn number"
-          onClick={() => inputDigit('7')}
-        >
-          7
-        </button>
-        <button
-          className="calc-btn number"
-          onClick={() => inputDigit('8')}
-        >
-          8
-        </button>
-        <button
-          className="calc-btn number"
-          onClick={() => inputDigit('9')}
-        >
-          9
-        </button>
-        <button
-          className="calc-btn operator"
-          onClick={() => performOperation('+')}
-        >
-          +
-        </button>
+        <button className="calc-btn number" onClick={() => inputDigit('4')}>4</button>
+        <button className="calc-btn number" onClick={() => inputDigit('5')}>5</button>
+        <button className="calc-btn number" onClick={() => inputDigit('6')}>6</button>
+        <button className="calc-btn operator" onClick={() => performOperation('*')}>×</button>
 
-        {/* Row 3 */}
-        <button
-          className="calc-btn number"
-          onClick={() => inputDigit('4')}
-        >
-          4
-        </button>
-        <button
-          className="calc-btn number"
-          onClick={() => inputDigit('5')}
-        >
-          5
-        </button>
-        <button
-          className="calc-btn number"
-          onClick={() => inputDigit('6')}
-        >
-          6
-        </button>
-        <button
-          className="calc-btn equals"
-          onClick={handleEquals}
-        >
-          =
-        </button>
+        <button className="calc-btn number" onClick={() => inputDigit('1')}>1</button>
+        <button className="calc-btn number" onClick={() => inputDigit('2')}>2</button>
+        <button className="calc-btn number" onClick={() => inputDigit('3')}>3</button>
+        <button className="calc-btn operator" onClick={() => performOperation('-')}>−</button>
 
-        {/* Row 4 */}
-        <button
-          className="calc-btn number"
-          onClick={() => inputDigit('1')}
-        >
-          1
-        </button>
-        <button
-          className="calc-btn number"
-          onClick={() => inputDigit('2')}
-        >
-          2
-        </button>
-        <button
-          className="calc-btn number"
-          onClick={() => inputDigit('3')}
-        >
-          3
-        </button>
-
-        {/* Row 5 - Zero spans 2 columns, dot is separate */}
-        <button
-          className="calc-btn number zero"
-          onClick={() => inputDigit('0')}
-        >
-          0
-        </button>
-        <button
-          className="calc-btn number"
-          onClick={inputDot}
-        >
-          .
-        </button>
+        <button className="calc-btn clear" onClick={clearDisplay}>C</button>
+        <button className="calc-btn number" onClick={() => inputDigit('0')}>0</button>
+        <button className="calc-btn equals" onClick={handleEquals}>=</button>
+        <button className="calc-btn operator" onClick={() => performOperation('+')}>+</button>
       </div>
       
-      {/* NEW: Hint for users */}
       <div className="calculator-hint">
-        <p></p>
+        <p>
+          enter code <strong>{unlockCode}</strong> · tap <strong>=</strong> to unlock
+          <button className="change-code-btn" onClick={toggleCodeChange}>
+            {isSettingCode ? '✓ Save' : '✎ Change'}
+          </button>
+        </p>
+        {isSettingCode && (
+          <div className="code-change-area">
+            <input
+              type="text"
+              className="code-input"
+              value={newCode}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                setNewCode(val);
+                setDisplay(val || 'Enter 4-digit code');
+              }}
+              placeholder="4-digit code"
+              maxLength="4"
+              autoFocus
+            />
+            <button className="code-set-btn" onClick={changeUnlockCode}>Set</button>
+            <button className="code-cancel-btn" onClick={toggleCodeChange}>Cancel</button>
+          </div>
+        )}
       </div>
     </div>
   );

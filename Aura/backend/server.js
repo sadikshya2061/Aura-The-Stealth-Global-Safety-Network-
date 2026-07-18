@@ -18,11 +18,21 @@ let emergencyContacts = [
   { name: 'Ambulance', phone: '102' }
 ];
 
-// Store safety stories (Structured to handle the global sanctuary feature requirements)
-let safetyStories = [];
+const fs = require('fs');
+const DATA_FILE = './data.json';
 
-// Store replies for stories
-let storyReplies = {};
+function loadData() {
+  if (fs.existsSync(DATA_FILE)) {
+    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  }
+  return { safetyStories: [], storyReplies: {} };
+}
+
+function saveData() {
+  fs.writeFileSync(DATA_FILE, JSON.stringify({ safetyStories, storyReplies }, null, 2));
+}
+
+let { safetyStories, storyReplies } = loadData();
 
 /**
  * Reusable SMS Dispatcher Module
@@ -75,11 +85,18 @@ app.post('/api/sos/send-sms', async (req, res) => {
 // 2. Make Emergency Call
 app.post('/api/sos/make-call', (req, res) => {
   const { phoneNumber } = req.body;
-  
-  console.log('🚨 VoIP Interface: Initiating raw native voice path to:', phoneNumber);
-  
-  res.json({ 
-    success: true, 
+
+  if (!phoneNumber) {
+    return res.status(400).json({
+      success: false,
+      error: "Phone number is required."
+    });
+  }
+
+  console.log('🚨 VoIP Interface: Initiating call to:', phoneNumber);
+
+  res.json({
+    success: true,
     message: 'Call initialization packet acknowledged',
     phoneNumber
   });
@@ -106,6 +123,7 @@ app.post('/api/story/save', (req, res) => {
   
   safetyStories.unshift(newStory);
   console.log('New Sanctuary Story cataloged safely:', newStory.id);
+  saveData();
   
   res.json({ 
     success: true, 
@@ -124,7 +142,12 @@ app.get('/api/story/get', (req, res) => {
 
 // 5. Save Reply to a Story
 app.post('/api/story/reply', (req, res) => {
-  const { storyId, reply, category } = req.body;
+  const {
+  storyId,
+  reply,
+  category,
+  parentReplyId
+} = req.body;
   
   if (!storyId || !reply) {
     return res.status(400).json({ success: false, error: "Missing storyId or reply content." });
@@ -136,23 +159,25 @@ app.post('/api/story/reply', (req, res) => {
   }
 
   const newReply = {
-    id: `${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-    storyId: storyId,
-    reply: reply,
-    category: category || 'General Support',
-    timestamp: new Date().toISOString(),
-    anonymousId: 'anonymous_' + Math.random().toString(36).substr(2, 6)
-  };
+    id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    storyId,
+    parentReplyId: parentReplyId || null,
+    reply,
+    category,
+    timestamp: new Date().toISOString()
+};
   
-  storyReplies[storyId].unshift(newReply);
-  
+storyReplies[storyId].push(newReply);  
   // Update reply count in the story
-  const storyIndex = safetyStories.findIndex(s => s.id === storyId);
+const storyIndex = safetyStories.findIndex(
+    s => String(s.id) === String(storyId)
+);
   if (storyIndex !== -1) {
     safetyStories[storyIndex].replies = (safetyStories[storyIndex].replies || 0) + 1;
   }
   
   console.log('New reply added to story:', storyId);
+  saveData();
   
   res.json({ 
     success: true, 
@@ -164,12 +189,16 @@ app.post('/api/story/reply', (req, res) => {
 // 6. Get All Replies for a Story
 app.get('/api/story/replies/:storyId', (req, res) => {
   const { storyId } = req.params;
-  
-  const replies = storyReplies[storyId] || [];
-  
-  res.json({ 
-    success: true, 
-    replies: replies
+
+  const replies = [...(storyReplies[storyId] || [])];
+
+  replies.sort(
+    (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+  );
+
+  res.json({
+    success: true,
+    replies
   });
 });
 
@@ -177,7 +206,9 @@ app.get('/api/story/replies/:storyId', (req, res) => {
 app.delete('/api/story/delete/:storyId', (req, res) => {
   const { storyId } = req.params;
   
-  const storyIndex = safetyStories.findIndex(s => s.id === storyId);
+const storyIndex = safetyStories.findIndex(
+    s => String(s.id) === String(storyId)
+);
   if (storyIndex === -1) {
     return res.status(404).json({ success: false, error: "Story not found." });
   }
@@ -186,6 +217,7 @@ app.delete('/api/story/delete/:storyId', (req, res) => {
   
   // Also delete associated replies
   delete storyReplies[storyId];
+  saveData();
   
   res.json({ 
     success: true, 
@@ -199,8 +231,10 @@ app.delete('/api/story/reply/delete/:replyId', (req, res) => {
   
   let deleted = false;
   for (const storyId in storyReplies) {
-    const replyIndex = storyReplies[storyId].findIndex(r => r.id === replyId);
-    if (replyIndex !== -1) {
+const replyIndex = storyReplies[storyId].findIndex(
+    r => String(r.id) === String(replyId)
+);
+   if (replyIndex !== -1) {
       storyReplies[storyId].splice(replyIndex, 1);
       deleted = true;
       break;
@@ -210,6 +244,8 @@ app.delete('/api/story/reply/delete/:replyId', (req, res) => {
   if (!deleted) {
     return res.status(404).json({ success: false, error: "Reply not found." });
   }
+
+  saveData();
   
   res.json({ 
     success: true, 
