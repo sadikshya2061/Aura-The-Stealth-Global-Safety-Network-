@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // ============ API SERVICE ============
 const api = {
@@ -654,7 +654,6 @@ function App() {
       }
       return;
     }
-
     // Percentage
     if (key === '%') {
       const result = bigDiv(calcDisplay, '100');
