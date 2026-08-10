@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE = process.env.REACT_APP_API_URL || 'https://aura-the-stealth-global-safety-network-5.onrender.com';
 
 // ============ API SERVICE ============
 const api = {
@@ -1011,7 +1011,7 @@ function App() {
             (err) => {
               console.log('Live update failed:', err.message);
             },
-            { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+            { enableHighAccuracy: true, timeout: 25000, maximumAge: 60000 }
           );
         }, 10000);
         
